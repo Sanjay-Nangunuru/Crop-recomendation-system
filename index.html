@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Crop Recommendation</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to right, #e0f7fa, #f1f8e9);
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 30px;
+      background: #ffffff;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      border-radius: 10px;
+    }
+
+    h2 {
+      text-align: center;
+      color: #2e7d32;
+      margin-bottom: 20px;
+      font-size: 28px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #43a047;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #388e3c;
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+      text-align: center;
+      color: #1b5e20;
+    }
+
+    .error {
+      color: #d32f2f;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🌾 Crop Recommendation Form</h2>
+    <form id="cropForm">
+      <label for="N">Nitrogen (N)</label>
+      <input type="number" name="N" required>
+
+      <label for="P">Phosphorus (P)</label>
+      <input type="number" name="P" required>
+
+      <label for="K">Potassium (K)</label>
+      <input type="number" name="K" required>
+
+      <label for="temperature">Temperature (°C)</label>
+      <input type="number" name="temperature" step="0.1" required>
+
+      <label for="humidity">Humidity (%)</label>
+      <input type="number" name="humidity" step="0.1" required>
+
+      <label for="ph">pH</label>
+      <input type="number" name="ph" step="0.1" required>
+
+      <label for="rainfall">Rainfall (mm)</label>
+      <input type="number" name="rainfall" step="0.1" required>
+
+      <button type="submit">Get Recommendation</button>
+    </form>
+
+    <div id="result"></div>
+  </div>
+
+  <script>
+    document.getElementById('cropForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      const data = {};
+      formData.forEach((value, key) => data[key] = parseFloat(value));
+
+      fetch('http://127.0.0.1:5000/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+      .then(res => res.json())
+      .then(result => {
+        const resultDiv = document.getElementById('result');
+        if (result.recommended_crop) {
+          resultDiv.innerHTML = `<strong>✅ Recommended Crop:</strong> <em>${result.recommended_crop}</em>`;
+          resultDiv.classList.remove("error");
+        } else {
+          resultDiv.innerHTML = `⚠️ Error: ${result.error}`;
+          resultDiv.classList.add("error");
+        }
+      })
+      .catch(error => {
+        document.getElementById('result').innerHTML = `⚠️ Error: ${error}`;
+        document.getElementById('result').classList.add("error");
+      });
+    });
+  </script>
+</body>
+</html>
